@@ -26,158 +26,158 @@
     Performance Considerations: https://docs.microsoft.com/en-us/powershell/scripting/dev-cross-plat/performance/script-authoring-considerations?view=powershell-7.1
 #>
 
-try {
-    #region FUNCTIONS
-    <# 
-        Declare Functions
-    #>
+#region FUNCTIONS
+<# 
+    Declare Functions
+#>
 
-    function Write-ConsoleLog {
-        <#
-            .SYNOPSIS
-            Logs an event to the console.
-            
-            .DESCRIPTION
-            Writes text to the console with the current date (US format) in front of it.
-            
-            .PARAMETER Text
-            Event/text to be outputted to the console.
-            
-            .EXAMPLE
-            Write-ConsoleLog -Text 'Subscript XYZ called.'
-            
-            Long form
-
-            .EXAMPLE
-            Log 'Subscript XYZ called.
-            
-            Short form
-        #>
-
-        [alias('Log')]
-        [CmdletBinding()]
-        param (
-            [Parameter(Mandatory = $true,
-            Position = 0)]
-            [string]
-            $Text
-        )
-
-        # Save current VerbosePreference
-        $VerbosePreferenceBefore = $VerbosePreference
-
-        # Enable verbose output
-        $VerbosePreference = 'Continue'
-
-        # Write verbose output
-        Write-Output "$( Get-Date -Format 'MM/dd/yyyy HH:mm:ss' ) - $( $Text )"
-
-        # Restore current VerbosePreference
-        $VerbosePreference = $VerbosePreferenceBefore
-    }
-
-    function Get-Token {
-        <#
-            .SYNOPSIS
-            Returns an API token.
-            
-            .DESCRIPTION
-            Authorize this API client (PowerShell) against the Acronis Account Management API receiving a token. The token is then used to authenticate further API calls.
-            
-            .PARAMETER Url
-            URL for your Acronis portal.
-            
-            .PARAMETER ApiClientId
-            Client ID for the Acronis Account Management API. This can be generated the Acronis management portal.
-
-            .PARAMETER ApiClientSecret
-            Client secret for the Acronis Account Management API. This too can be generated in the Acronis management portal.
-
-            .EXAMPLE
-            Get-Token -Url 'https://portal.ajani.info' -ApiClientId '02baa9be-f1a2-4524-a8cb-0cd75c9acb61' -ApiClientSecret 'mzrop4shdxil3ud4lvvdcn5l4acqtafufi4juudqabfhxga756pm'
-
-            .OUTPUTS
-            Outputs an array (System.Object) with two variables. First the access token. Secondly the scope.
-
-            .NOTES
-            If you want to use this script for all your clients, you can generate an API client from you partner account which has access to all you clients tenants. 
-            Check the related link for a guid from the manufacturer on how the Acronis Account Management API works and where you can create your API Client ID and secret.
-
-            .LINK
-            https://www.acronis.com/en-us/blog/posts/how-to-automate-acronis-agent-installations/
-        #>
-
-        [CmdletBinding()]
-        param (
-            [Parameter(Mandatory)]
-            [string]
-            $Url,
-
-            [Parameter(Mandatory)]
-            [string]
-            [ValidatePattern('^[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+$')]
-            $ApiClientId,
-
-            [Parameter(Mandatory)]
-            [string]
-            [ValidateLength(52,52)]
-            $ApiClientSecret
-        )
-
-        # Manually construct Basic Authentication Header
-        $pair = "${ApiClientId}:${ApiClientSecret}"
-        $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
-        $base64 = [System.Convert]::ToBase64String($bytes)
-        $basicAuthValue = "Basic $base64"
-        $headers = @{ "Authorization" = $basicAuthValue }
-
-        # Use param to tell type of credentials we request
-        $postParams = @{ grant_type = "client_credentials" }
-
-        # Add the request content type to the headers
-        $headers.Add("Content-Type", "application/x-www-form-urlencoded")
-        $headers.Add("User-Agent", "ACP 3.0/Acronis Cyber Platform PowerShell Examples")
-        $token = Invoke-RestMethod -Method Post -Uri "${Url}api/2/idp/token" -Headers $headers -Body $postParams
-
-        # Return access token
-        return $token
-    }
-
-    #endregion FUNCTIONS
-    #region INITIALIZATION
-    <# 
-        Libraries, Modules, ...
-    #>
-
-    # Nothing to initialize this time...
-
-    #endregion INITIALIZATION
-    #region DECLARATIONS
+function Write-ConsoleLog {
     <#
-        Declare local variables and global variables
+        .SYNOPSIS
+        Logs an event to the console.
+        
+        .DESCRIPTION
+        Writes text to the console with the current date (US format) in front of it.
+        
+        .PARAMETER Text
+        Event/text to be outputted to the console.
+        
+        .EXAMPLE
+        Write-ConsoleLog -Text 'Subscript XYZ called.'
+        
+        Long form
+
+        .EXAMPLE
+        Log 'Subscript XYZ called.
+        
+        Short form
     #>
 
-    # The following variables should be set through your rmm solution. 
-    # Here some examples of possible declarations with explanations for each variable.
-    # Tip: PowerShell variables are not case sensitive.
+    [alias('Log')]
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true,
+        Position = 0)]
+        [string]
+        $Text
+    )
 
-    <# 
+    # Save current VerbosePreference
+    $VerbosePreferenceBefore = $VerbosePreference
 
-    $CustomerUserName = 'User'
-    $CustomerTenantName = "Customer"
-    $FtpServerFqdn = 'contoso.org' # FQDN or IP address of your FTP server
-    $FtpUsername = 'user' # Username of your FTP user
-    $FtpPassword = 'lkj fa8efjalALKJ38uu!"'ÄÖ' # Password for your FTP user
-    $FtpAgentDir = '\home\BackupAgentInstallFiles\' # Directory in which you've stored the agent installation files
-    $Dest = 'C:\Installer\Acronis' # Destination where the agent installer should be downloaded/saved to (used to start installation)
-    $AgentType can be either win, sql, hyperv or ad. If left empty it will auto detect one of the before mentioned.
-    $Lang = 'de' # Which language should the agent UI use?
-    $Url = 'https://portal.ajani.info/' # The full URL for your Acronis tenant (plugging Ajani right here)
-    $ApiClientId = '02baa9be-f1a2-4524-a8cb-0cd75c9acb61' # API client ID
-    $ApiClientSecret = 'mzrop4shdxil3ud4lvvdcn5l4acqtafufi4juudqabfhxga756pm' # API client secret
+    # Enable verbose output
+    $VerbosePreference = 'Continue'
 
+    # Write verbose output
+    Write-Output "$( Get-Date -Format 'MM/dd/yyyy HH:mm:ss' ) - $( $Text )"
+
+    # Restore current VerbosePreference
+    $VerbosePreference = $VerbosePreferenceBefore
+}
+
+function Get-Token {
+    <#
+        .SYNOPSIS
+        Returns an API token.
+        
+        .DESCRIPTION
+        Authorize this API client (PowerShell) against the Acronis Account Management API receiving a token. The token is then used to authenticate further API calls.
+        
+        .PARAMETER Url
+        URL for your Acronis portal.
+        
+        .PARAMETER ApiClientId
+        Client ID for the Acronis Account Management API. This can be generated the Acronis management portal.
+
+        .PARAMETER ApiClientSecret
+        Client secret for the Acronis Account Management API. This too can be generated in the Acronis management portal.
+
+        .EXAMPLE
+        Get-Token -Url 'https://portal.ajani.info' -ApiClientId '02baa9be-f1a2-4524-a8cb-0cd75c9acb61' -ApiClientSecret 'mzrop4shdxil3ud4lvvdcn5l4acqtafufi4juudqabfhxga756pm'
+
+        .OUTPUTS
+        Outputs an array (System.Object) with two variables. First the access token. Secondly the scope.
+
+        .NOTES
+        If you want to use this script for all your clients, you can generate an API client from you partner account which has access to all you clients tenants. 
+        Check the related link for a guid from the manufacturer on how the Acronis Account Management API works and where you can create your API Client ID and secret.
+
+        .LINK
+        https://www.acronis.com/en-us/blog/posts/how-to-automate-acronis-agent-installations/
     #>
 
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $Url,
+
+        [Parameter(Mandatory)]
+        [string]
+        [ValidatePattern('^[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+$')]
+        $ApiClientId,
+
+        [Parameter(Mandatory)]
+        [string]
+        [ValidateLength(52,52)]
+        $ApiClientSecret
+    )
+
+    # Manually construct Basic Authentication Header
+    $pair = "${ApiClientId}:${ApiClientSecret}"
+    $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
+    $base64 = [System.Convert]::ToBase64String($bytes)
+    $basicAuthValue = "Basic $base64"
+    $headers = @{ "Authorization" = $basicAuthValue }
+
+    # Use param to tell type of credentials we request
+    $postParams = @{ grant_type = "client_credentials" }
+
+    # Add the request content type to the headers
+    $headers.Add("Content-Type", "application/x-www-form-urlencoded")
+    $headers.Add("User-Agent", "ACP 3.0/Acronis Cyber Platform PowerShell Examples")
+    $token = Invoke-RestMethod -Method Post -Uri "${Url}api/2/idp/token" -Headers $headers -Body $postParams
+
+    # Return access token
+    return $token
+}
+
+#endregion FUNCTIONS
+#region INITIALIZATION
+<# 
+    Libraries, Modules, ...
+#>
+
+# Nothing to initialize this time...
+
+#endregion INITIALIZATION
+#region DECLARATIONS
+<#
+    Declare local variables and global variables
+#>
+
+# The following variables should be set through your rmm solution. 
+# Here some examples of possible declarations with explanations for each variable.
+# Tip: PowerShell variables are not case sensitive.
+
+<# 
+
+$CustomerUserName = 'User'
+$CustomerTenantName = "Customer"
+$FtpServerFqdn = 'contoso.org' # FQDN or IP address of your FTP server
+$FtpUsername = 'user' # Username of your FTP user
+$FtpPassword = 'lkj fa8efjalALKJ38uu!"'ÄÖ' # Password for your FTP user
+$FtpAgentDir = '\home\BackupAgentInstallFiles\' # Directory in which you've stored the agent installation files
+$Dest = 'C:\Installer\Acronis' # Destination where the agent installer should be downloaded/saved to (used to start installation)
+$AgentType can be either win, sql, hyperv or ad. If left empty it will auto detect one of the before mentioned.
+$Lang = 'de' # Which language should the agent UI use?
+$Url = 'https://portal.ajani.info/' # The full URL for your Acronis tenant (plugging Ajani right here)
+$ApiClientId = '02baa9be-f1a2-4524-a8cb-0cd75c9acb61' # API client ID
+$ApiClientSecret = 'mzrop4shdxil3ud4lvvdcn5l4acqtafufi4juudqabfhxga756pm' # API client secret
+
+#>
+
+try {
     # The following variables can be adjusted if you have different file names. Names are used to identify the files on the FTP server, as well as to save the downloaded file locally.
     $AgentWindows = 'AcronisCyberProtect_AgentForWindows_web.exe' # Full name of the agent installer for windows clients and server
     $AgentMsSql = 'AcronisCyberProtect_AgentForSQL_web.exe' # Full name of the agent installer for Microsoft SQL server
