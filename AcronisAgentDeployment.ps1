@@ -15,7 +15,7 @@
     https://github.com/MichaelSchoenburg/AcronisAgentDeployment
 
 .LINK
-    https://developer.acronis.com/doc/account-management/v2/reference/index.html#docs/method/#/web-api/endpoint/%2Fsearch/get
+    https://developer.acronis.com/doc/account-management/v2/reference/index.html#docs/summary/summary
 
 .NOTES
     Author: Michael Schönburg
