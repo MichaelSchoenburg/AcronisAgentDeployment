@@ -20,7 +20,6 @@
 .NOTES
     Author: Michael Schönburg
     Version: v1.0
-    Last Edit: 05.04.2024
     
     This projects code loosely follows the PowerShell Practice and Style guide, as well as Microsofts PowerShell scripting performance considerations.
     Style guide: https://poshcode.gitbook.io/powershell-practice-and-style/
