@@ -208,8 +208,7 @@ try {
         try {
             if ( (Get-WindowsFeature AD-Domain-Services).Installed ) { Log 'Detected Active Directory.'; $AgentName = $AgentAd }
             elseif ( (Get-WindowsFeature Hyper-V).Installed ) { Log 'Detected Hyper-V.'; $AgentName = $AgentHyperV }
-        }
-        catch {
+        } catch {
             
         }
 
@@ -374,8 +373,7 @@ try {
 
             # Download installation file
             Get-SFTPItem -SFTPSession $s -Path $Source -Destination $Dest -Force # One can only specify a directory as destination. The file will always keep its name.
-        }
-        finally {
+        } finally {
             # Disconnect from FTP server
             Remove-SFTPSession -SFTPSession $s
         }
@@ -389,8 +387,7 @@ try {
         # If I waited I might run into a timeout with the RMM script runner.
         & $InstallFile --quiet --language=$Lang --reg-token=$( $ClientRegistration.token ) --log-dir=$LogDir --reg-address=$Url
     }
-}
-catch {
+} catch {
     Log "An error occurred. Will exit with exit code 1. Error Details:"
     Log "Exception Message: $($PSItem.Exception.Message)"
     Log "Inner Exception Message: $($PSItem.Exception.InnerException)"
