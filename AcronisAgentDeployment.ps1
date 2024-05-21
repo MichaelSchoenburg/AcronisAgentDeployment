@@ -17,6 +17,9 @@
 .LINK
     https://developer.acronis.com/doc/account-management/v2/reference/index.html#docs/summary/summary
 
+.LINK
+    https://www.acronis.com/en-us/blog/posts/how-to-personalize-unattended-acronis-agent-installation-on-windows/
+
 .NOTES
     Author: Michael Schönburg
     Version: v1.0
