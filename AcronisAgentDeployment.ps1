@@ -174,6 +174,8 @@ $Lang = 'de' # Which language should the agent UI use?
 $Url = 'https://portal.ajani.info/' # The full URL for your Acronis tenant (plugging Ajani right here)
 $ApiClientId = '02baa9be-f1a2-4524-a8cb-0cd75c9acb61' # API client ID
 $ApiClientSecret = 'mzrop4shdxil3ud4lvvdcn5l4acqtafufi4juudqabfhxga756pm' # API client secret
+$DomAdminUsername = 'DOM\USER'
+$DomAdminPassword = 'Pa$$vv0rd'
 
 #>
 
@@ -385,7 +387,14 @@ try {
         # Execute installation file with arguments
         # I decided not to wait for the process.
         # If I waited I might run into a timeout with the RMM script runner.
-        & $InstallFile --quiet --language=$Lang --reg-token=$( $ClientRegistration.token ) --log-dir=$LogDir --reg-address=$Url
+        
+        Log 'Starting installation...'
+
+        if ($AgentName -eq $AgentAd) {
+            & $InstallFile --quiet --language=$Lang --reg-token=$( $ClientRegistration.token ) --log-dir=$LogDir --reg-address=$Url --agent-account-login=$DomAdminUsername --agent-account-password=$DomAdminPassword
+        } else {
+            & $InstallFile --quiet --language=$Lang --reg-token=$( $ClientRegistration.token ) --log-dir=$LogDir --reg-address=$Url
+        }
     }
 } catch {
     Log "An error occurred. Will exit with exit code 1. Error Details:"
