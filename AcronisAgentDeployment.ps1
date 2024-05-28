@@ -183,6 +183,8 @@ $DomAdminPassword = 'Pa$$vv0rd'
 #>
 
 try {
+    $Successful = $false
+
     # The following variables can be adjusted if you have different file names. Names are used to identify the files on the FTP server, as well as to save the downloaded file locally.
     $AgentWindows = 'AcronisCyberProtect_AgentForWindows_web.exe' # Full name of the agent installer for windows clients and server
     $AgentMsSql = 'AcronisCyberProtect_AgentForSQL_web.exe' # Full name of the agent installer for Microsoft SQL server
@@ -398,13 +400,22 @@ try {
         } else {
             & $InstallFile --quiet --language=$Lang --reg-token=$( $ClientRegistration.token ) --log-dir=$LogDir --reg-address=$Url
         }
+
+        $Successful = $true
     }
 } catch {
-    Log "An error occurred. Will exit with exit code 1. Error Details:"
     Log "Exception Message: $($PSItem.Exception.Message)"
     Log "Inner Exception Message: $($PSItem.Exception.InnerException)"
     $PSItem.InvocationInfo | Format-List *
     Exit 1
+} finally {
+    if ($Successful) {
+        Log "`$Successful is set to true. Exiting with exit code 0."
+        Exit 0
+    } else {
+        Log "`$Successful isn't set to true. Exiting with exit code 1."
+        Exit 1
+    }
 }
 
 #endregion EXECUTION
