@@ -72,7 +72,7 @@ function Write-ConsoleLog {
     $VerbosePreference = 'Continue'
 
     # Write verbose output
-    Write-Output "$( Get-Date -Format 'MM/dd/yyyy HH:mm:ss' ) - $( $Text )"
+    Write-Output "$( Get-Date -Format 'MM/dd/yyyy HH:mm:ss' ) - $( $Script:Section ): $( $Text )"
 
     # Restore current VerbosePreference
     $VerbosePreference = $VerbosePreferenceBefore
@@ -183,6 +183,7 @@ $DomAdminPassword = 'Pa$$vv0rd'
 #>
 
 try {
+    $Script:Section = 'DECLARATIONS'
     $Successful = $false
 
     # The following variables can be adjusted if you have different file names. Names are used to identify the files on the FTP server, as well as to save the downloaded file locally.
@@ -236,6 +237,8 @@ try {
         Script entry point
     #>
 
+    $Script:Section = 'PERQUISITES'
+
     # Check if the agent is already installed. If it is, skip the entire script. If not, proceed with installation.
     Log 'Checking if Acronis Cyber Protect Agent is installed already...'
 
@@ -245,24 +248,46 @@ try {
         Log 'Acronis Cyber Protect Agent is not installed. Proceeding...'
 
         <# 
+            Create directory for installation file
+        #>
+
+        Log "Creating directory..."
+
+        if (-not (Test-Path -Path $Dest)) {
+            New-Item -Path $Dest -ItemType Directory -Force
+        }
+
+        <# 
             Get installation token from API
         #>
+
+        $Script:Section = 'API'
+
+        Log "Issuing API access token..."
 
         # Issue token to access API
         $ApiToken = Get-Token -Url $Url -ApiClientId $ApiClientId -ApiClientSecret $ApiClientSecret
         $ApiAccessToken = $ApiToken.access_token
 
+        Log "Constructing bearer..."
+
         # Manually construct Bearer
         $bearerAuthValue = "Bearer $ApiAccessToken"
         $headers = @{ "Authorization" = $bearerAuthValue }
+
+        Log "Constructing headers..."
 
         # The request contains body with JSON
         $headers.Add("Content-Type", "application/json")
         $headers.Add("User-Agent", "ACP 3.0/Acronis Cyber Platform PowerShell Examples")
 
+        Log "Reading own tenant ID..."
+
         # Get own tenant ID
         $apiClientInfo = Invoke-RestMethod -Uri "$($Url)api/2/clients/$($ApiClientId)" -Headers $headers
         $tenantId = $apiClientInfo.tenant_id
+
+        Log "Reading customer tenant ID..."
 
         # Get customer tenant ID
         $pagingParams = @{tenant = $tenantId; text = $customerTenantName}
@@ -338,16 +363,10 @@ try {
         $ClientRegistration = Invoke-RestMethod -Method Post -Uri "$($Url)api/2/tenants/$($customerTenantId)/registration_tokens" -Headers $headers -Body $json
 
         <# 
-            Create directory for installation file
-        #>
-
-        if (-not (Test-Path -Path $Dest)) {
-            New-Item -Path $Dest -ItemType Directory -Force
-        }
-
-        <# 
             Connect to FTP server to receive installation file
         #>
+
+        $Script:Section = "FTP"
 
         # Check if PowerShell module for SFTP is installed already
         if (Get-Module -Name Posh-SSH) {
@@ -388,6 +407,8 @@ try {
         <# 
             Install
         #>
+
+        $Script:Section = "INSTALL"
 
         # Execute installation file with arguments
         # I decided not to wait for the process.
