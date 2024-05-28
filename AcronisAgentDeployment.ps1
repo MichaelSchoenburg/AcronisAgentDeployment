@@ -244,6 +244,7 @@ try {
 
     if ((Get-WmiObject -Class Win32_Product -Filter "Name='Cyber Protect'")) {
         Log 'Acronis Cyber Protect Agent is installed already. Skipping.'
+        $Successful = $true
     } else {
         Log 'Acronis Cyber Protect Agent is not installed. Proceeding...'
 
