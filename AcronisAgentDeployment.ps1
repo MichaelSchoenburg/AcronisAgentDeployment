@@ -407,7 +407,6 @@ try {
     Log "Exception Message: $($PSItem.Exception.Message)"
     Log "Inner Exception Message: $($PSItem.Exception.InnerException)"
     $PSItem.InvocationInfo | Format-List *
-    Exit 1
 } finally {
     if ($Successful) {
         Log "`$Successful is set to true. Exiting with exit code 0."
